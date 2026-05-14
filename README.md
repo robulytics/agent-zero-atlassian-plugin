@@ -118,6 +118,10 @@ This plugin uses the [Atlassian Cloud REST APIs](https://developer.atlassian.com
 
 > 💡 Want to automate your Atlassian workflows? [Book a free 15‑min call →](https://robulytics.com/contact)
 
+## Disclaimer
+
+This plugin is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall Robulytics be liable for any claim, damages, or other liability arising from the use of this software. Robulytics is an independent business and is not affiliated with, endorsed by, or sponsored by Atlassian or the Agent Zero project. All product names, logos, and brands are property of their respective owners.
+
 ## License
 
 MIT License — free for personal and commercial use. See [LICENSE](LICENSE) file for details.
