@@ -1,0 +1,12 @@
+name: atlassian
+title: Atlassian Integration
+description: Manage your Atlassian instance, Jira projects, and Confluence pages directly via Agent Zero.
+version: 1.0.0
+author: Oliver Mihatovic
+license: MIT
+homepage: https://www.robulytics.com
+repository: https://github.com/robulytics/agent-zero-atlassian-plugin
+settings_sections:
+  - agent
+per_project_config: false
+per_agent_config: false
