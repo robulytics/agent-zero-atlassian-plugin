@@ -11,8 +11,10 @@ class AtlassianTool(Tool):
         "Generic Atlassian Cloud tool for Jira and Confluence. "
         "Use a single PAT (Personal Access Token) per instance. "
         "Actions: confluence_get_page, confluence_search, confluence_list_spaces, "
-        "confluence_create_page, confluence_update_page, "
-        "jira_get_issue, jira_search, jira_create_issue, jira_list_projects. "
+        "confluence_create_page, confluence_update_page, confluence_get_page_children, "
+        "confluence_list_pages, confluence_add_comment, confluence_get_comments, confluence_get_descendants, "
+        "confluence_get_attachments, confluence_add_label, confluence_get_labels, "
+        "jira_get_issue, jira_search, jira_create_issue, jira_list_projects, jira_update_issue, jira_add_comment, jira_get_comments, jira_transition_issue, jira_get_transitions, jira_assign_issue, jira_list_issues, jira_get_project, jira_list_issue_types, jira_list_priorities, jira_list_statuses, jira_list_users, jira_get_myself, jira_list_project_versions, jira_list_project_components, jira_get_fields, jira_get_issue_watchers, jira_add_watcher, jira_get_worklog, jira_add_worklog. "
         "Instance is selected via 'instance' argument."
     )
 
@@ -97,6 +99,66 @@ class AtlassianTool(Tool):
                 content=content, version=int(version), representation=representation,
             )
 
+        elif action == "confluence_get_page_children":
+            page_id = kwargs.get("page_id")
+            if not page_id:
+                raise ValueError("Missing 'page_id' argument.")
+            expand = kwargs.get("expand", "page")
+            limit = int(kwargs.get("limit", 25))
+            return client.confluence_get_page_children(page_id, expand, limit)
+
+        elif action == "confluence_list_pages":
+            space_key = kwargs.get("space_key")
+            limit = int(kwargs.get("limit", 25))
+            start = int(kwargs.get("start", 0))
+            expand = kwargs.get("expand")
+            return client.confluence_list_pages(space_key, limit, start, expand)
+
+        elif action == "confluence_add_comment":
+            page_id = kwargs.get("page_id")
+            body = kwargs.get("body")
+            if not page_id or not body:
+                raise ValueError("Missing 'page_id' or 'body'.")
+            representation = kwargs.get("representation", "storage")
+            return client.confluence_add_comment(page_id, body, representation)
+
+        elif action == "confluence_get_comments":
+            page_id = kwargs.get("page_id")
+            if not page_id:
+                raise ValueError("Missing 'page_id' argument.")
+            expand = kwargs.get("expand", "body.storage,version")
+            limit = int(kwargs.get("limit", 25))
+            return client.confluence_get_comments(page_id, expand, limit)
+
+        elif action == "confluence_get_descendants":
+            page_id = kwargs.get("page_id")
+            if not page_id:
+                raise ValueError("Missing 'page_id' argument.")
+            expand = kwargs.get("expand", "page")
+            limit = int(kwargs.get("limit", 25))
+            return client.confluence_get_descendants(page_id, expand, limit)
+
+        elif action == "confluence_get_attachments":
+            page_id = kwargs.get("page_id")
+            if not page_id:
+                raise ValueError("Missing 'page_id' argument.")
+            expand = kwargs.get("expand")
+            limit = int(kwargs.get("limit", 25))
+            return client.confluence_get_attachments(page_id, expand, limit)
+
+        elif action == "confluence_add_label":
+            page_id = kwargs.get("page_id")
+            label = kwargs.get("label")
+            if not page_id or not label:
+                raise ValueError("Missing 'page_id' or 'label'.")
+            return client.confluence_add_label(page_id, label)
+
+        elif action == "confluence_get_labels":
+            page_id = kwargs.get("page_id")
+            if not page_id:
+                raise ValueError("Missing 'page_id' argument.")
+            return client.confluence_get_labels(page_id)
+
         # Jira actions
         elif action == "jira_get_issue":
             issue_key = kwargs.get("issue_key")
@@ -130,7 +192,130 @@ class AtlassianTool(Tool):
         elif action == "jira_list_projects":
             return client.jira_list_projects()
 
+        elif action == "jira_update_issue":
+            issue_key = kwargs.get("issue_key")
+            fields = kwargs.get("fields")
+            if not issue_key or fields is None:
+                raise ValueError("Missing 'issue_key' or 'fields'.")
+            if isinstance(fields, str):
+                import json
+                fields = json.loads(fields)
+            if not isinstance(fields, dict):
+                raise ValueError("'fields' must be a dict or JSON object string.")
+            return client.jira_update_issue(issue_key, fields)
+
+        elif action == "jira_add_comment":
+            issue_key = kwargs.get("issue_key")
+            body = kwargs.get("body")
+            if not issue_key or not body:
+                raise ValueError("Missing 'issue_key' or 'body'.")
+            return client.jira_add_comment(issue_key, body)
+
+        elif action == "jira_get_comments":
+            issue_key = kwargs.get("issue_key")
+            if not issue_key:
+                raise ValueError("Missing 'issue_key' argument.")
+            max_results = int(kwargs.get("max_results", 10))
+            start_at = int(kwargs.get("start_at", 0))
+            return client.jira_get_comments(issue_key, max_results, start_at)
+
+        elif action == "jira_transition_issue":
+            issue_key = kwargs.get("issue_key")
+            transition_id = kwargs.get("transition_id")
+            if not issue_key or not transition_id:
+                raise ValueError("Missing 'issue_key' or 'transition_id'.")
+            comment = kwargs.get("comment")
+            return client.jira_transition_issue(issue_key, transition_id, comment)
+
+        elif action == "jira_get_transitions":
+            issue_key = kwargs.get("issue_key")
+            if not issue_key:
+                raise ValueError("Missing 'issue_key' argument.")
+            return client.jira_get_transitions(issue_key)
+
+        elif action == "jira_assign_issue":
+            issue_key = kwargs.get("issue_key")
+            if not issue_key:
+                raise ValueError("Missing 'issue_key' argument.")
+            account_id = kwargs.get("account_id", "")
+            return client.jira_assign_issue(issue_key, account_id)
+
+        elif action == "jira_list_issues":
+            project_key = kwargs.get("project_key")
+            if not project_key:
+                raise ValueError("Missing 'project_key' argument.")
+            status = kwargs.get("status")
+            issuetype = kwargs.get("issuetype")
+            max_results = int(kwargs.get("max_results", 20))
+            fields = kwargs.get("fields", "summary,status,assignee,priority")
+            return client.jira_list_issues(project_key, status, issuetype, max_results, fields)
+
+
+        elif action == "jira_get_project":
+            project_key = kwargs.get("project_key")
+            if not project_key:
+                raise ValueError("Missing 'project_key' argument.")
+            return client.jira_get_project(project_key)
+
+        elif action == "jira_list_issue_types":
+            return client.jira_list_issue_types()
+
+        elif action == "jira_list_priorities":
+            return client.jira_list_priorities()
+
+        elif action == "jira_list_statuses":
+            return client.jira_list_statuses()
+
+        elif action == "jira_list_users":
+            query = kwargs.get("query", "")
+            max_results = int(kwargs.get("max_results", 50))
+            start_at = int(kwargs.get("start_at", 0))
+            return client.jira_list_users(query, max_results, start_at)
+
+        elif action == "jira_get_myself":
+            return client.jira_get_myself()
+
+        elif action == "jira_list_project_versions":
+            project_key = kwargs.get("project_key")
+            if not project_key:
+                raise ValueError("Missing 'project_key' argument.")
+            return client.jira_list_project_versions(project_key)
+
+        elif action == "jira_list_project_components":
+            project_key = kwargs.get("project_key")
+            if not project_key:
+                raise ValueError("Missing 'project_key' argument.")
+            return client.jira_list_project_components(project_key)
+
+        elif action == "jira_get_fields":
+            return client.jira_get_fields()
+
+        elif action == "jira_get_issue_watchers":
+            issue_key = kwargs.get("issue_key")
+            if not issue_key:
+                raise ValueError("Missing 'issue_key' argument.")
+            return client.jira_get_issue_watchers(issue_key)
+
+        elif action == "jira_add_watcher":
+            issue_key = kwargs.get("issue_key")
+            account_id = kwargs.get("account_id")
+            if not issue_key or not account_id:
+                raise ValueError("Missing 'issue_key' or 'account_id'.")
+            return client.jira_add_watcher(issue_key, account_id)
+
+        elif action == "jira_get_worklog":
+            issue_key = kwargs.get("issue_key")
+            if not issue_key:
+                raise ValueError("Missing 'issue_key' argument.")
+            return client.jira_get_worklog(issue_key)
+
+        elif action == "jira_add_worklog":
+            issue_key = kwargs.get("issue_key")
+            time_spent = kwargs.get("time_spent")
+            if not issue_key or not time_spent:
+                raise ValueError("Missing 'issue_key' or 'time_spent'.")
+            comment = kwargs.get("comment")
+            return client.jira_add_worklog(issue_key, time_spent, comment)
+
         else:
-            raise ValueError(f"Unknown action '{action}'. Supported: confluence_get_page, confluence_search, "
-                             "confluence_list_spaces, confluence_create_page, confluence_update_page, "
-                             "jira_get_issue, jira_search, jira_create_issue, jira_list_projects.")
+            raise ValueError(f"Unknown action '{action}'. Supported: confluence_get_page, confluence_search, confluence_list_spaces, confluence_create_page, confluence_update_page, confluence_get_page_children, confluence_list_pages, confluence_add_comment, confluence_get_comments, confluence_get_descendants, confluence_get_attachments, confluence_add_label, confluence_get_labels, jira_get_issue, jira_search, jira_create_issue, jira_list_projects, jira_update_issue, jira_add_comment, jira_get_comments, jira_transition_issue, jira_get_transitions, jira_assign_issue, jira_list_issues, jira_get_project, jira_list_issue_types, jira_list_priorities, jira_list_statuses, jira_list_users, jira_get_myself, jira_list_project_versions, jira_list_project_components, jira_get_fields, jira_get_issue_watchers, jira_add_watcher, jira_get_worklog, jira_add_worklog.")

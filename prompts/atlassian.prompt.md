@@ -50,6 +50,52 @@ Update an existing page.
 - `content` (storage-format HTML, required)
 - `version` (required, integer – increment from current)
 
+### confluence_get_page_children
+Get direct children for a Confluence page.
+- `page_id` (required)
+- `expand` (optional, default `page`)
+- `limit` (optional, default 25)
+
+### confluence_list_pages
+List Confluence pages (`type=page`).
+- `space_key` (optional)
+- `limit` (optional, default 25)
+- `start` (optional, default 0)
+- `expand` (optional)
+
+### confluence_add_comment
+Add a comment to a Confluence page.
+- `page_id` (required)
+- `body` (required)
+- `representation` (optional, default `storage`)
+
+### confluence_get_comments
+Get comments for a Confluence page.
+- `page_id` (required)
+- `expand` (optional, default `body.storage,version`)
+- `limit` (optional, default 25)
+
+### confluence_get_descendants
+Get descendants for a Confluence page.
+- `page_id` (required)
+- `expand` (optional, default `page`)
+- `limit` (optional, default 25)
+
+### confluence_get_attachments
+Get attachments for a Confluence page.
+- `page_id` (required)
+- `expand` (optional)
+- `limit` (optional, default 25)
+
+### confluence_add_label
+Add a global label to a Confluence page.
+- `page_id` (required)
+- `label` (required)
+
+### confluence_get_labels
+Get labels for a Confluence page.
+- `page_id` (required)
+
 ## Jira Actions
 
 ### jira_get_issue
@@ -88,3 +134,13 @@ List all Jira projects. No extra arguments.
 
 ## Authentication
 Uses Basic Auth: `email:PAT` base64 encoded.
+
+
+## Additional Jira Actions
+- jira_update_issue(issue_key, fields)
+- jira_add_comment(issue_key, body)
+- jira_get_comments(issue_key, max_results=10, start_at=0)
+- jira_transition_issue(issue_key, transition_id, comment=None)
+- jira_get_transitions(issue_key)
+- jira_assign_issue(issue_key, account_id="")
+- jira_list_issues(project_key, status=None, issuetype=None, max_results=20, fields="summary,status,assignee,priority")
