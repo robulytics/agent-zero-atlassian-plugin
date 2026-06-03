@@ -1,6 +1,7 @@
 import os
 from typing import Optional, Dict, Any
 from helpers.tool import Tool, Response
+from helpers.secrets import get_secrets_manager
 from usr.plugins.atlassian.helpers.api import AtlassianClient
 
 
@@ -18,6 +19,15 @@ class AtlassianTool(Tool):
         "Instance is selected via 'instance' argument."
     )
 
+    def _resolve_secret(self, key: str) -> Optional[str]:
+        """Resolve a secret via the framework's SecretsManager (global + project)."""
+        try:
+            sm = get_secrets_manager()
+            secrets = sm.load_secrets()
+            return secrets.get(key)
+        except Exception:
+            return None
+
     async def execute(self, instance: str = "", action: str = "", **kwargs) -> Response:
         if not instance:
             return Response(message="Error: 'instance' argument is required (e.g., 'your-instance').", break_loop=False)
@@ -31,7 +41,12 @@ class AtlassianTool(Tool):
 
         base_url = os.getenv(base_url_key) or os.getenv("ATLASSIAN_BASEURL")
         email = os.getenv(email_key) or os.getenv("ATLASSIAN_EMAIL", "")
-        api_token = self.agent.get_secret(pat_secret) or self.agent.get_secret("ATLASSIAN_PAT")
+        api_token = (
+            os.getenv(pat_secret)
+            or os.getenv("ATLASSIAN_PAT")
+            or self._resolve_secret(pat_secret)
+            or self._resolve_secret("ATLASSIAN_PAT")
+        )
 
         if not base_url:
             return Response(
